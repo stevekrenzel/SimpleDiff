@@ -10,17 +10,17 @@ from sys import argv
 
 class SimpleDiff():
 
-  def __init__(self, a, b, min_match=0):
+  def __init__(self, a, b, min_match=2):
     self.a = a
     self.b = b
     self.min_match = min_match
 
-    # Initialize the index cache
+    # Initialize the index for quick lookups into `b`
     self.index = defaultdict(list)
     for i, c in enumerate(b):
       self.index[c].append(i)
 
-  def longest_common_substring(self, alo, ahi, blo, bhi, mn=3):
+  def longest_common_substring(self, alo, ahi, blo, bhi):
     matches, mxi, mxj, mxsz = defaultdict(int), 0, 0, 0
     new_matches = defaultdict(int)
     for i in xrange(alo, ahi):
@@ -33,10 +33,12 @@ class SimpleDiff():
       new_matches = defaultdict(int)
     return mxi - mxsz + 1, mxj - mxsz + 1, mxsz
 
-  def find_matches(self, alo, ahi, blo, bhi):
+  def find_matches(self):
     queue, matches = [(0, len(self.a), 0, len(self.b))], []
     while queue:
       alo, ahi, blo, bhi = queue.pop()
+      if alo == ahi or blo == bhi:
+        continue
       i, j, k = self.longest_common_substring(alo, ahi, blo, bhi)
       if k == 0:
         continue
@@ -48,7 +50,7 @@ class SimpleDiff():
 
   def compare(self):
     a, b = self.a, self.b
-    matches = self.find_matches(0, len(a), 0, len(b))
+    matches = self.find_matches()
     matches = [(0, 0, 0)] + matches + [(len(a), len(b), 0)]
     ops = []
     for x in xrange(len(matches) - 1):
@@ -78,21 +80,17 @@ tests = [('Hello world.', 'Hello good world.'),
          ('', ''),
          ('Hello world.', ''),
          ('Hello one world.', 'Hello two world.'),
-         ('Hello one world.', 'Hello good two bad world.')]
+         ('Hello one world.', 'Hello good two bad world.'),
+         ('AAAAA', 'AAAAA')]
 
 t = time()
 for a, b in tests:
-  a, b = a * m, b * m
-  for i in xrange(n):
-    SimpleDiff(a, b).compare()
-print time() - t
+  print a, b
+  s = SimpleDiff(a, b, 3)
+  print s.find_matches()
+  print s.compare()
+  print
 
-t = time()
-for a, b in tests:
-  a, b = a * m, b * m
-  for i in xrange(n):
-    list(ndiff(a, b))
-print time() - t
 
 #t = time()
 #d = SimpleDiff(a, b)
