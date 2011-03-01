@@ -1,8 +1,4 @@
 from collections import defaultdict
-from difflib import ndiff
-from random import randint
-from time import time
-from sys import argv
 
 class SimpleDiff():
 
