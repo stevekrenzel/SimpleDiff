@@ -4,13 +4,9 @@ from random import randint
 from time import time
 from sys import argv
 
-# I suspect that scanning through once and then catching the max at each
-# position would speed up things, even though we'd need to filter out and/or
-# recalculate invalid/out-of-bounds areas
-
 class SimpleDiff():
 
-  def __init__(self, a, b, min_match=2):
+  def __init__(self, a, b, min_match=1):
     self.a = a
     self.b = b
     self.min_match = min_match
@@ -70,31 +66,7 @@ class SimpleDiff():
   def __str__(self):
     return str(self.compare())
 
-l = 10
-n = 100
-m = 8
-tests = [('Hello world.', 'Hello good world.'),
-         ('Hello world.', 'world.'),
-         ('Hello world.', 'Hello'),
-         ('', 'Hello good world.'),
-         ('', ''),
-         ('Hello world.', ''),
-         ('Hello one world.', 'Hello two world.'),
-         ('Hello one world.', 'Hello good two bad world.'),
-         ('AAAAA', 'AAAAA')]
-
-t = time()
-for a, b in tests:
-  print a, b
-  s = SimpleDiff(a, b, 3)
-  print s.find_matches()
-  print s.compare()
-  print
-
-
-#t = time()
-#d = SimpleDiff(a, b)
-#for i in range(n):
-#  d.compare()
-#t = time() - t
-#print n, t, len(a), len(b), n / t
+if __name__ == '__main__':
+  a = "The red brown fox jumped over the rolling log."
+  b = "The brown spotted fox leaped over the rolling log."
+  print SimpleDiff(a, b).compare()
