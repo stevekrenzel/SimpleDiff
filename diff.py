@@ -2,7 +2,7 @@ from collections import defaultdict
 
 class SimpleDiff():
 
-  def __init__(self, a, b, min_match=1):
+  def __init__(self, a, b, min_match=2):
     self.a = a
     self.b = b
     self.min_match = min_match
@@ -63,6 +63,20 @@ class SimpleDiff():
     return str(self.compare())
 
 if __name__ == '__main__':
-  a = "The red brown fox jumped over the rolling log."
-  b = "The brown spotted fox leaped over the rolling log."
-  print SimpleDiff(a, b).compare()
+  tests = [('Hello world.', 'Hello good world.'),
+           ('Hello world.', 'world.'),
+           ('Hello world.', 'Hello'),
+           ('', 'Hello good world.'),
+           ('', ''),
+           ('Hello world.', ''),
+           ('Hello one world.', 'Hello two world.'),
+           ('Hello one world.', 'Hello good two bad world.'),
+           ('AAAAAAA', 'AAAAAAA'),
+           ('AAAAAAA', 'AAABAAA'),
+           ('The red brown fox jumped over the rolling log.',
+            'The brown spotted fox leaped over the rolling log.')]
+
+  for a, b in tests:
+    print a + ' --- ' + b
+    print SimpleDiff(a, b)
+    print
