@@ -1,8 +1,9 @@
-function diff(a, b, min_match) {
+function SimpleDiff(a, b, min_match) {
 
   var index = {};
 
-  var init = function () {
+  /* Init */
+  (function () {
     min_match = min_match || 3;
 
     // Initialize reversed index of all the characters in `b`
@@ -12,8 +13,7 @@ function diff(a, b, min_match) {
       }
       index[b[i]].push(i);
     }
-  }
-
+  })();
 
   var longest_common_substring = function (alo, ahi, blo, bhi) {
     var matches = {}, mxi = 0, mxj = 0, mxsz = 0, new_matches = {};
@@ -35,7 +35,7 @@ function diff(a, b, min_match) {
 
 
   // Find the largest chunks of matching blocks between the two strings
-  var find_matches = function () {
+  this.find_matches = function () {
     var matches = [[0, 0, 0], [a.length, b.length, 0]];
     var queue = [[0, a.length, 0, b.length]];
     while(queue.length > 0) {
@@ -62,41 +62,79 @@ function diff(a, b, min_match) {
 
 
   // Generate op codes from the list of matches
-  var compare = function () {
-    var ops = [], matches = find_matches();
+  this.compare = function () {
+    var ops = [], matches = this.find_matches();
     for(var x = 0; x < matches.length - 1; x++) {
       var m = matches[x], n = matches[x + 1];
       var equ_len = m[0] + m[2],
           del_len = n[0] - m[0] - m[2],
           add_len = n[1] - m[1] - m[2];
       if(equ_len > 0) {
-        ops.push({op: ' ', text: a.substring(m[0], m[0] + m[2])});
+        ops.push([' ', a.substring(m[0], m[0] + m[2])]);
       }
       if(del_len > 0) {
-        ops.push({op: '-', text: a.substring(m[0] + m[2], n[0])});
+        ops.push(['-', a.substring(m[0] + m[2], n[0])]);
       }
       if(add_len > 0) {
-        ops.push({op: '+', text: b.substring(m[1] + m[2], n[1])});
+        ops.push(['+', b.substring(m[1] + m[2], n[1])]);
       }
     }
     return ops;
   }
 
-  init();
-  return compare();
+  this.ndiff = function () {
+    var out = [];
+    var cmp = this.compare();
+    for(var x in cmp) {
+      var op = cmp[x][0], s = cmp[x][1];
+      for(var c in s) {
+        out.push(op + ' ' + c);
+      }
+    }
+    return out;
+  }
+
+  this.toString = function () {
+    var cmp = this.compare(), out = [];
+    for(var x in cmp) {
+      out.push('[\'' + cmp[x][0] + '\', \'' + cmp[x][1] + '\']');
+
+    }
+    return '[' + out.join(', ') + ']';
+  }
 }
 
 function html_diff(a, b) {
-  var ops = diff(a, b);
-  var out = '';
+  var ops = new SimpleDiff(a, b).compare(), out = '';
   for(var i in ops) {
-    if(ops[i].op == ' ') {
-      out += ops[i].text;
-    } else if(ops[i].op == '-') {
-      out += '<del>' + ops[i].text + '</del>';
-    } else if(ops[i].op == '+') {
-      out += '<ins>' + ops[i].text + '</ins>';
+    if(ops[i][0] == ' ') {
+      out += ops[i][1];
+    } else if(ops[i][0] == '-') {
+      out += '<del>' + ops[i][1] + '</del>';
+    } else if(ops[i][0] == '+') {
+      out += '<ins>' + ops[i][1] + '</ins>';
     }
   }
   return out;
+}
+
+var tests = [['Hello world.', 'Hello good world.'],
+             ['Hello world.', 'world.'],
+             ['Hello world.', 'Hello'],
+             ['', 'Hello good world.'],
+             ['', ''],
+             ['Hello world.', ''],
+             ['Hello one world.', 'Hello two world.'],
+             ['Hello one world.', 'Hello good two bad world.'],
+             ['AAAAAAA', 'AAAAAAA'],
+             ['AAAAAAA', 'AAABAAA'],
+             ['The red brown fox jumped over the rolling log.',
+              'The brown spotted fox leaped over the rolling log.']]
+
+for(var x in tests) {
+  var a = tests[x][0], b = tests[x][1];
+  print(a + ' --- ' + b);
+  print(new SimpleDiff(a, b));
+  print(html_diff(a, b));
+  print();
 }
