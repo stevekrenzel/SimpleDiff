@@ -1,29 +1,27 @@
 function SimpleDiff(a, b, min_match) {
+  this.index = {};
 
-  var index = {};
+  this.min_match = min_match || 2;
 
-  /* Init */
-  (function () {
-    min_match = min_match || 3;
-
-    // Initialize reversed index of all the characters in `b`
-    for(var i = 0; i < b.length; i++) {
-      if(!(b[i] in index)) {
-        index[b[i]] = [];
-      }
-      index[b[i]].push(i);
+  // Initialize reversed index of all the characters in `b`
+  for(var i = 0; i < b.length; i++) {
+    if(!(b[i] in this.index)) {
+      this.index[b[i]] = [];
     }
-  })();
+    this.index[b[i]].push(i);
+  }
+}
 
-  var longest_common_substring = function (alo, ahi, blo, bhi) {
+SimpleDiff.prototype = {
+  longest_common_substring : function (alo, ahi, blo, bhi) {
     var matches = {}, mxi = 0, mxj = 0, mxsz = 0, new_matches = {};
     for(var i = alo; i < ahi; i++) {
-      var lookup = index[a[i]];
-      for(var j_ in index[a[i]]) {
+      var lookup = this.index[a[i]];
+      for(var j_ in this.index[a[i]]) {
         var j = lookup[j_];
         if(blo <= j && j < bhi) {
           var k = new_matches[j] = (matches[j - 1] || 0) + 1;;
-          if(k >= min_match && k > mxsz) {
+          if(k >= this.min_match && k > mxsz) {
             mxi = i, mxj = j, mxsz = k;
           }
         }
@@ -31,18 +29,18 @@ function SimpleDiff(a, b, min_match) {
       matches = new_matches, new_matches = {};
     }
     return [mxi - mxsz + 1, mxj - mxsz + 1, mxsz];
-  }
+  },
 
 
-  // Find the largest chunks of matching blocks between the two strings
-  this.find_matches = function () {
+  find_matches : function () {
+    // Find the largest chunks of matching blocks between the two strings
     var matches = [[0, 0, 0], [a.length, b.length, 0]];
     var queue = [[0, a.length, 0, b.length]];
     while(queue.length > 0) {
       var e = queue.pop();
-      var s = longest_common_substring.apply(this, e);
+      var s = this.longest_common_substring.apply(this, e);
       var i = s[0], j = s[1], k = s[2];
-      if(k >= min_match) {
+      if(k >= this.min_match) {
         matches.push(s);
         queue.push([e[0], i, e[2], j]);
         queue.push([i + k, e[1], j + k, e[3]]);
@@ -58,11 +56,11 @@ function SimpleDiff(a, b, min_match) {
     });
 
     return matches;
-  }
+  },
 
 
-  // Generate op codes from the list of matches
-  this.compare = function () {
+  compare : function () {
+    // Generate op codes from the list of matches
     var ops = [], matches = this.find_matches();
     for(var x = 0; x < matches.length - 1; x++) {
       var m = matches[x], n = matches[x + 1];
@@ -80,9 +78,10 @@ function SimpleDiff(a, b, min_match) {
       }
     }
     return ops;
-  }
+  },
 
-  this.ndiff = function () {
+
+  ndiff : function () {
     var out = [];
     var cmp = this.compare();
     for(var x in cmp) {
@@ -92,9 +91,10 @@ function SimpleDiff(a, b, min_match) {
       }
     }
     return out;
-  }
+  },
 
-  this.toString = function () {
+
+  toString : function () {
     var cmp = this.compare(), out = [];
     for(var x in cmp) {
       out.push('[\'' + cmp[x][0] + '\', \'' + cmp[x][1] + '\']');
@@ -103,6 +103,8 @@ function SimpleDiff(a, b, min_match) {
     return '[' + out.join(', ') + ']';
   }
 }
+
+
 
 function html_diff(a, b) {
   var ops = new SimpleDiff(a, b).compare(), out = '';
@@ -118,6 +120,7 @@ function html_diff(a, b) {
   return out;
 }
 
+
 var tests = [['Hello world.', 'Hello good world.'],
              ['Hello world.', 'world.'],
              ['Hello world.', 'Hello'],
@@ -130,6 +133,7 @@ var tests = [['Hello world.', 'Hello good world.'],
              ['AAAAAAA', 'AAABAAA'],
              ['The red brown fox jumped over the rolling log.',
               'The brown spotted fox leaped over the rolling log.']]
+
 
 for(var x in tests) {
   var a = tests[x][0], b = tests[x][1];
