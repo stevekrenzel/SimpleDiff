@@ -1,10 +1,11 @@
 class SimpleDiff
-  def initialize(a, b, min_match=3)
+  def initialize(a, b, min_match=2)
     @a, @b, @min_match = a, b, min_match
 
     # Initialize the index for quick lookups into `b`
     @index, i = {}, 0
-    @b.each_char do |c|
+    (0...@b.length).each do |i|
+      c = @b[i]
       if !@index.include? c
         @index[c] = []
       end
@@ -16,8 +17,8 @@ class SimpleDiff
   def longest_common_substring(alo, ahi, blo, bhi)
     matches, mxi, mxj, mxsz, new_matches = {}, 0, 0, 0, {}
     (alo...ahi).each do |i|
-      next if @index[@a[i, 1]].nil?
-      @index[@a[i, 1]].each do |j|
+      js = @index[@a[i]].nil? ? [] : @index[@a[i]]
+      js.each do |j|
         if blo <= j and j < bhi
           k = new_matches[j] = (matches[j - 1] or 0) + 1
           if k >= @min_match and k > mxsz
